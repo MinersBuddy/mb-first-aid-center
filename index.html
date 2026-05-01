@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>First Aid Centres — MinersBuddy</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange: #F5A623; --orange-light: #FFB84D;
+    --orange-dim: rgba(245,166,35,0.15);
+    --bg: #0D1B2A; --bg2: #142032;
+    --card: #1A2B3C; --card2: #1F3347;
+    --border: rgba(245,166,35,0.2);
+    --text: #FFFFFF; --text-muted: rgba(255,255,255,0.5);
+    --green: #10B981; --red: #EF4444;
+    --radius: 16px; --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  .light {
+    --bg: #F0EEE8; --bg2: #E8E5DC;
+    --card: #FFFFFF; --card2: #F5F3EE;
+    --border: rgba(245,166,35,0.3);
+    --text: #0D1B2A; --text-muted: rgba(13,27,42,0.5);
+    --orange-dim: rgba(245,166,35,0.1);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; transition:background var(--transition),color var(--transition); }
+
+  /* NAV */
+  nav { background:var(--bg2); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; }
+  .logo { font-family:'Syne',sans-serif; font-size:20px; font-weight:800; }
+  .logo span { color:var(--orange); }
+  .nav-right { display:flex; align-items:center; gap:10px; }
+  .theme-btn { background:var(--card); border:none; border-radius:50%; width:36px; height:36px; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; color:var(--text); transition:var(--transition); }
+  .theme-btn:hover { background:var(--orange-dim); }
+  .avatar { width:36px; height:36px; border-radius:50%; background:var(--orange); display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-weight:700; font-size:13px; color:#000; }
+
+  /* ── API CONFIG BANNER ── */
+  .api-banner {
+    background:var(--card); border-bottom:1px solid var(--border);
+    padding:14px 20px; display:flex; flex-direction:column; gap:10px;
+  }
+  .api-banner-title {
+    font-size:11px; font-weight:700; color:var(--orange);
+    text-transform:uppercase; letter-spacing:0.8px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .api-row { display:flex; gap:8px; align-items:center; }
+  .api-input {
+    flex:1; background:var(--bg); border:1px solid var(--border);
+    border-radius:10px; padding:9px 14px; color:var(--text);
+    font-family:'DM Sans',sans-serif; font-size:13px; outline:none;
+    transition:var(--transition);
+  }
+  .api-input:focus { border-color:var(--orange); box-shadow:0 0 0 3px var(--orange-dim); }
+  .api-input::placeholder { color:var(--text-muted); }
+  .fetch-btn {
+    background:var(--orange); border:none; border-radius:10px;
+    padding:9px 18px; color:#000; font-family:'DM Sans',sans-serif;
+    font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;
+    transition:var(--transition); display:flex; align-items:center; gap:6px;
+  }
+  .fetch-btn:hover { background:var(--orange-light); transform:translateY(-1px); }
+  .fetch-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+  .api-status {
+    font-size:12px; padding:6px 12px; border-radius:8px;
+    display:none; align-items:center; gap:6px;
+  }
+  .api-status.success { display:flex; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); color:var(--green); }
+  .api-status.error { display:flex; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); color:var(--red); }
+  .api-status.loading { display:flex; background:var(--orange-dim); border:1px solid var(--border); color:var(--orange); }
+
+  /* HEADER */
+  .header-section { padding:20px 20px 14px; background:var(--bg2); border-bottom:1px solid var(--border); }
+  .header-tag { display:inline-flex; align-items:center; gap:6px; background:var(--orange-dim); border:1px solid var(--border); border-radius:20px; padding:4px 12px; margin-bottom:8px; font-size:11px; font-weight:600; color:var(--orange); text-transform:uppercase; letter-spacing:0.5px; }
+  .header-title { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; margin-bottom:4px; }
+  .header-title span { color:var(--orange); }
+  .header-sub { font-size:13px; color:var(--text-muted); }
+
+  /* STATS */
+  .stats-bar { display:flex; gap:10px; padding:14px 20px; border-bottom:1px solid var(--border); overflow-x:auto; scrollbar-width:none; }
+  .stats-bar::-webkit-scrollbar { display:none; }
+  .stat-chip { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px 16px; white-space:nowrap; display:flex; flex-direction:column; align-items:center; gap:2px; min-width:76px; }
+  .stat-num { font-family:'Syne',sans-serif; font-size:20px; font-weight:800; color:var(--orange); }
+  .stat-label { font-size:11px; color:var(--text-muted); }
+
+  /* CONTROLS */
+  .controls { padding:14px 20px; display:flex; flex-direction:column; gap:10px; }
+  .search-box { display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:11px 16px; transition:var(--transition); }
+  .search-box:focus-within { border-color:var(--orange); box-shadow:0 0 0 3px var(--orange-dim); }
+  .search-box input { background:none; border:none; outline:none; color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; width:100%; }
+  .search-box input::placeholder { color:var(--text-muted); }
+  .filter-row { display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; }
+  .filter-row::-webkit-scrollbar { display:none; }
+  select { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:8px 12px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:13px; outline:none; cursor:pointer; min-width:130px; flex-shrink:0; -webkit-appearance:none; transition:var(--transition); }
+  select:focus { border-color:var(--orange); }
+  .locate-btn { display:flex; align-items:center; gap:6px; background:var(--orange); border:none; border-radius:10px; padding:8px 14px; color:#000; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; flex-shrink:0; transition:var(--transition); }
+  .locate-btn:hover { background:var(--orange-light); transform:translateY(-1px); }
+
+  /* VIEW TOGGLE */
+  .view-toggle { display:flex; padding:0 20px 12px; }
+  .toggle-btn { flex:1; padding:10px; border:1px solid var(--border); background:var(--card); color:var(--text-muted); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:var(--transition); display:flex; align-items:center; justify-content:center; gap:6px; }
+  .toggle-btn:first-child { border-radius:10px 0 0 10px; }
+  .toggle-btn:last-child { border-radius:0 10px 10px 0; border-left:none; }
+  .toggle-btn.active { background:var(--orange-dim); color:var(--orange); border-color:var(--orange); }
+
+  /* MAP */
+  .map-container { margin:0 20px 14px; border-radius:var(--radius); border:1px solid var(--border); overflow:hidden; position:relative; height:300px; background:var(--card); }
+  .map-inner { width:100%; height:100%; background:linear-gradient(135deg,#0a1628 0%,#0d2137 30%,#0a1e30 60%,#091525 100%); position:relative; overflow:hidden; }
+  .light .map-inner { background:linear-gradient(135deg,#d4e8f0 0%,#c8dfe8 50%,#cce0ea 100%); }
+  .map-inner::before { content:''; position:absolute; inset:0; background-image:linear-gradient(rgba(245,166,35,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(245,166,35,0.05) 1px,transparent 1px); background-size:40px 40px; }
+  .map-svg { position:absolute; inset:0; width:100%; height:100%; }
+  .map-dot { position:absolute; width:9px; height:9px; background:var(--orange); border-radius:50%; border:2px solid rgba(245,166,35,0.3); cursor:pointer; transition:var(--transition); animation:pulse 2.5s infinite; transform:translate(-50%,-50%); }
+  .map-dot:hover { transform:translate(-50%,-50%) scale(2); z-index:10; }
+  .map-dot.highlight { background:#10b981; border-color:#fff; }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(245,166,35,0.4)}50%{box-shadow:0 0 0 5px rgba(245,166,35,0)} }
+  .map-legend { position:absolute; bottom:10px; left:10px; background:rgba(13,27,42,0.85); backdrop-filter:blur(8px); border:1px solid var(--border); border-radius:10px; padding:7px 11px; display:flex; flex-direction:column; gap:4px; }
+  .light .map-legend { background:rgba(255,255,255,0.85); }
+  .legend-item { display:flex; align-items:center; gap:6px; font-size:10px; color:var(--text-muted); }
+  .legend-dot { width:7px; height:7px; border-radius:50%; background:var(--orange); }
+  .map-zoom { position:absolute; bottom:10px; right:10px; display:flex; flex-direction:column; gap:4px; }
+  .zoom-btn { width:30px; height:30px; background:rgba(13,27,42,0.85); backdrop-filter:blur(8px); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:var(--transition); }
+  .zoom-btn:hover { background:var(--orange-dim); color:var(--orange); border-color:var(--orange); }
+
+  /* RESULTS */
+  .results-header { padding:4px 20px 10px; display:flex; align-items:center; justify-content:space-between; }
+  .results-count { font-size:13px; color:var(--text-muted); }
+  .results-count span { color:var(--orange); font-weight:700; }
+
+  /* CARDS */
+  .cards-list { padding:0 20px 100px; display:flex; flex-direction:column; gap:10px; }
+  .centre-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; display:flex; cursor:pointer; transition:var(--transition); position:relative; }
+  .centre-card:hover { border-color:var(--orange); box-shadow:0 4px 20px rgba(245,166,35,0.12); transform:translateY(-2px); }
+  .centre-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--orange); border-radius:3px 0 0 3px; }
+  .card-body { padding:14px 14px 14px 18px; flex:1; min-width:0; }
+  .card-top { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:6px; }
+  .card-id { background:var(--orange-dim); border:1px solid var(--border); border-radius:6px; padding:2px 7px; font-size:10px; color:var(--orange); font-weight:700; }
+  .card-badge { background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); border-radius:6px; padding:2px 7px; font-size:10px; color:var(--green); font-weight:600; }
+  .card-name { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; line-height:1.4; margin-bottom:4px; }
+  .card-type { font-size:11px; color:var(--orange); font-weight:600; margin-bottom:6px; }
+  .card-address { font-size:12px; color:var(--text-muted); margin-bottom:8px; }
+  .card-meta { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+  .meta-chip { font-size:11px; color:var(--text-muted); background:var(--card2); border:1px solid var(--border); border-radius:6px; padding:3px 8px; }
+  .meta-chip.state { color:var(--orange); background:var(--orange-dim); }
+  .card-footer { display:flex; align-items:center; justify-content:space-between; }
+  .card-listed { font-size:10px; color:var(--text-muted); }
+  .card-actions { display:flex; align-items:center; padding-right:14px; gap:6px; }
+  .dir-btn { width:36px; height:36px; border-radius:10px; background:var(--orange-dim); border:1px solid var(--border); color:var(--orange); font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:var(--transition); }
+  .dir-btn:hover { background:var(--orange); color:#000; }
+
+  /* EMPTY / LOADING STATES */
+  .state-box { text-align:center; padding:48px 20px; display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .state-icon { font-size:44px; opacity:0.35; }
+  .state-title { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; }
+  .state-sub { font-size:13px; color:var(--text-muted); max-width:260px; line-height:1.6; }
+  .spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--orange); border-radius:50%; animation:spin 0.8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--card); border:1px solid var(--orange); border-radius:14px; padding:11px 18px; display:flex; align-items:center; gap:10px; font-size:13px; font-weight:500; color:var(--text); box-shadow:0 8px 32px rgba(0,0,0,0.3); transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1); z-index:999; white-space:nowrap; max-width:90vw; }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+
+  #map-view.hidden,#list-view.hidden { display:none; }
+  #map-view.visible,#list-view.visible { display:block; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Miners<span>Buddy</span></div>
+  <div class="nav-right">
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+    <div class="avatar">VI</div>
+  </div>
+</nav>
+
+<!-- ── API CONFIG ── -->
+<div class="api-banner">
+  <div class="api-banner-title">⚙️ API Endpoint</div>
+  <div class="api-row">
+    <input
+      class="api-input"
+      id="apiUrlInput"
+      type="text"
+      placeholder="https://raw.githubusercontent.com/MinersBuddy/mb-first-aid-center/main/first_aid_centres.json"
+      value=""
+    />
+    <button class="fetch-btn" id="fetchBtn" onclick="loadFromAPI()">
+      ⬇ Fetch
+    </button>
+  </div>
+  <div class="api-status" id="apiStatus"></div>
+</div>
+
+<!-- HEADER -->
+<div class="header-section">
+  <div class="header-tag">🏥 DGMS Listed</div>
+  <div class="header-title">First Aid <span>Centres</span></div>
+  <div class="header-sub" id="headerSub">Enter API URL above to load centres</div>
+</div>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat-chip"><span class="stat-num" id="totalCount">—</span><span class="stat-label">Centres</span></div>
+  <div class="stat-chip"><span class="stat-num" id="stateCount">—</span><span class="stat-label">States</span></div>
+  <div class="stat-chip"><span class="stat-num" id="filteredCount">—</span><span class="stat-label">Showing</span></div>
+  <div class="stat-chip"><span class="stat-num" id="yearCount">—</span><span class="stat-label">Updated</span></div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="search-box">
+    <span style="font-size:16px;color:var(--text-muted);">🔍</span>
+    <input type="text" id="searchInput" placeholder="Search centres, city, state..." oninput="filterCentres()" disabled/>
+    <span id="clearBtn" style="cursor:pointer;color:var(--text-muted);font-size:16px;display:none;" onclick="clearSearch()">✕</span>
+  </div>
+  <div class="filter-row">
+    <select id="stateFilter" onchange="filterCentres()" disabled><option value="">All States</option></select>
+    <select id="cityFilter" onchange="filterCentres()" disabled><option value="">All Cities</option></select>
+    <button class="locate-btn" onclick="findNearest()">📍 Nearest</button>
+  </div>
+</div>
+
+<!-- VIEW TOGGLE -->
+<div class="view-toggle">
+  <button class="toggle-btn active" id="mapToggle" onclick="switchView('map')">🗺️ Map View</button>
+  <button class="toggle-btn" id="listToggle" onclick="switchView('list')">☰ List View</button>
+</div>
+
+<!-- MAP -->
+<div id="map-view" class="visible">
+  <div class="map-container">
+    <div class="map-inner">
+      <svg class="map-svg" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+        <path d="M120,30 L140,25 L170,28 L195,20 L220,22 L245,30 L270,25 L285,35 L295,50 L290,65 L300,80 L295,95 L305,110 L300,130 L285,145 L275,165 L265,185 L255,210 L240,235 L225,255 L210,270 L200,283 L195,295 L185,285 L175,265 L160,245 L148,225 L135,205 L125,180 L118,155 L110,135 L105,110 L108,90 L100,70 L105,50 L115,38 Z"
+          fill="none" stroke="rgba(245,166,35,0.2)" stroke-width="1.5"/>
+      </svg>
+      <div id="mapDots"></div>
+      <div class="map-legend">
+        <div class="legend-item"><div class="legend-dot"></div> Training Centre</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div> Nearest</div>
+      </div>
+      <div class="map-zoom">
+        <button class="zoom-btn">+</button>
+        <button class="zoom-btn">−</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LIST VIEW (hidden) -->
+<div id="list-view" class="hidden"></div>
+
+<!-- RESULTS HEADER -->
+<div class="results-header">
+  <div class="results-count"><span id="resultNum">0</span> centres found</div>
+  <div style="font-size:12px;color:var(--text-muted);">Sorted by State</div>
+</div>
+
+<!-- CARDS -->
+<div class="cards-list" id="cardsList">
+  <!-- Empty state by default -->
+  <div class="state-box">
+    <div class="state-icon">🔗</div>
+    <div class="state-title">No Data Loaded</div>
+    <div class="state-sub">Enter your backend API URL above and click Fetch to load all First Aid Centres.</div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span>📍</span>
+  <span id="toastMsg">Loading...</span>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────
+let CENTRES = [];
+let filtered = [];
+let isDark = true;
+
+// ── API FETCH ──────────────────────────────────────────────────
+async function loadFromAPI() {
+  const url = document.getElementById('apiUrlInput').value.trim();
+  if (!url) { setStatus('error', '⚠️ Please enter a valid API URL'); return; }
+
+  const btn = document.getElementById('fetchBtn');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Loading...';
+  setStatus('loading', '⏳ Fetching data from server...');
+
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+
+    const json = await res.json();
+
+    // Support both: direct array OR { data: [...] } OR { centres: [...] }
+    const data = Array.isArray(json)
+      ? json
+      : json.data || json.centres || json.results || [];
+
+    if (!data.length) throw new Error('No centres found in response');
+
+    CENTRES = data;
+    filtered = [...CENTRES];
+
+    setStatus('success', `✅ Loaded ${CENTRES.length} centres successfully`);
+    initUI();
+
+  } catch (err) {
+    setStatus('error', `❌ ${err.message}`);
+    showToast('Failed to load data');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '⬇ Fetch';
+  }
+}
+
+function setStatus(type, msg) {
+  const el = document.getElementById('apiStatus');
+  el.className = 'api-status ' + type;
+  el.textContent = msg;
+}
+
+// ── INIT UI AFTER DATA LOAD ────────────────────────────────────
+function initUI() {
+  // Stats
+  const states = [...new Set(CENTRES.map(c => c.state))].sort();
+  const latestYear = CENTRES.map(c => c.date_of_listing || c.listed || '')
+    .filter(Boolean).sort().pop()?.split('.').pop() || '—';
+
+  document.getElementById('totalCount').textContent = CENTRES.length;
+  document.getElementById('stateCount').textContent = states.length;
+  document.getElementById('filteredCount').textContent = CENTRES.length;
+  document.getElementById('resultNum').textContent = CENTRES.length;
+  document.getElementById('yearCount').textContent = latestYear;
+  document.getElementById('headerSub').textContent =
+    `${CENTRES.length} certified training centres across ${states.length} states`;
+
+  // Enable inputs
+  document.getElementById('searchInput').disabled = false;
+  document.getElementById('stateFilter').disabled = false;
+  document.getElementById('cityFilter').disabled = false;
+
+  // Populate state filter
+  const sf = document.getElementById('stateFilter');
+  sf.innerHTML = '<option value="">All States</option>';
+  states.forEach(s => {
+    const o = document.createElement('option');
+    o.value = s; o.textContent = s; sf.appendChild(o);
+  });
+
+  renderCards(CENTRES);
+  renderMapDots(CENTRES);
+  showToast(`✅ ${CENTRES.length} centres loaded!`);
+}
+
+// ── FILTER ─────────────────────────────────────────────────────
+function filterCentres() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const state = document.getElementById('stateFilter').value;
+  const city = document.getElementById('cityFilter').value;
+  document.getElementById('clearBtn').style.display = q ? 'block' : 'none';
+
+  // Handle both coordinate formats: {coordinates:{lat,lng}} OR flat {lat, lng}
+  filtered = CENTRES.filter(c => {
+    const matchQ = !q ||
+      (c.name||'').toLowerCase().includes(q) ||
+      (c.city||'').toLowerCase().includes(q) ||
+      (c.state||'').toLowerCase().includes(q) ||
+      (c.address||'').toLowerCase().includes(q);
+    const matchState = !state || c.state === state;
+    const matchCity  = !city  || c.city  === city;
+    return matchQ && matchState && matchCity;
+  });
+
+  // Dynamic city filter
+  if (state) {
+    const cities = [...new Set(CENTRES.filter(c => c.state === state).map(c => c.city))].sort();
+    const cf = document.getElementById('cityFilter');
+    cf.innerHTML = '<option value="">All Cities</option>';
+    cities.forEach(ci => { const o = document.createElement('option'); o.value = ci; o.textContent = ci; cf.appendChild(o); });
+  }
+
+  document.getElementById('resultNum').textContent = filtered.length;
+  document.getElementById('filteredCount').textContent = filtered.length;
+  renderCards(filtered);
+  renderMapDots(filtered);
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  filterCentres();
+}
+
+// ── HELPERS: normalise lat/lng ─────────────────────────────────
+// Supports: c.lat / c.lng  OR  c.coordinates.lat / c.coordinates.lng
+function getLat(c) { return c.lat ?? c.coordinates?.lat ?? 0; }
+function getLng(c) { return c.lng ?? c.coordinates?.lng ?? 0; }
+function getListed(c) { return c.date_of_listing ?? c.listed ?? '—'; }
+
+// ── RENDER CARDS ───────────────────────────────────────────────
+function renderCards(data) {
+  const list = document.getElementById('cardsList');
+  if (!data.length) {
+    list.innerHTML = `<div class="state-box"><div class="state-icon">🏥</div><div class="state-title">No centres found</div><div class="state-sub">Try a different search or filter</div></div>`;
+    return;
+  }
+  list.innerHTML = data.map(c => `
+    <div class="centre-card">
+      <div class="card-body">
+        <div class="card-top">
+          <span class="card-id">#${String(c.id).padStart(2,'0')}</span>
+          <span class="card-badge">✓ DGMS Listed</span>
+        </div>
+        <div class="card-name">${c.name}</div>
+        ${c.type ? `<div class="card-type">${c.type}</div>` : ''}
+        <div class="card-address">📍 ${c.address}</div>
+        <div class="card-meta">
+          <span class="meta-chip state">🏛️ ${c.state}</span>
+          <span class="meta-chip">🏙️ ${c.city}</span>
+          <span class="meta-chip">📮 ${c.pincode}</span>
+        </div>
+        <div class="card-footer">
+          <span class="card-listed">Listed: ${getListed(c)}</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="dir-btn" title="Get Directions"
+          onclick="openDirections(${getLat(c)},${getLng(c)})">🧭</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── MAP DOTS ───────────────────────────────────────────────────
+function latLngToXY(lat, lng) {
+  const x = ((lng - 68) / 30) * 340 + 30;
+  const y = ((37 - lat) / 29) * 260 + 20;
+  return { x, y };
+}
+
+function renderMapDots(data) {
+  const container = document.getElementById('mapDots');
+  container.innerHTML = '';
+  data.forEach(c => {
+    const lat = getLat(c), lng = getLng(c);
+    if (!lat || !lng) return;
+    const { x, y } = latLngToXY(lat, lng);
+    const dot = document.createElement('div');
+    dot.className = 'map-dot';
+    dot.style.left = x + 'px';
+    dot.style.top  = y + 'px';
+    dot.title = `${c.name} — ${c.city}`;
+    dot.onclick = () => showToast(`${c.name} — ${c.city}`);
+    container.appendChild(dot);
+  });
+}
+
+// ── NEAREST ────────────────────────────────────────────────────
+function findNearest() {
+  if (!CENTRES.length) { showToast('Load data first!'); return; }
+  if (!navigator.geolocation) { showToast('Geolocation not supported'); return; }
+  showToast('Finding nearest centre...');
+  navigator.geolocation.getCurrentPosition(pos => {
+    const { latitude: lat, longitude: lng } = pos.coords;
+    let nearest = null, minD = Infinity;
+    CENTRES.forEach(c => {
+      const d = Math.hypot(getLat(c) - lat, getLng(c) - lng);
+      if (d < minD) { minD = d; nearest = c; }
+    });
+    if (nearest) {
+      showToast(`Nearest: ${nearest.name} — ${nearest.city}`);
+      renderCards([nearest, ...filtered.filter(c => c.id !== nearest.id)]);
+      document.querySelectorAll('.map-dot').forEach(d => d.classList.remove('highlight'));
+      const { x, y } = latLngToXY(getLat(nearest), getLng(nearest));
+      document.querySelectorAll('.map-dot').forEach(d => {
+        if (Math.abs(parseInt(d.style.left) - x) < 6 && Math.abs(parseInt(d.style.top) - y) < 6)
+          d.classList.add('highlight');
+      });
+    }
+  }, () => showToast('Location access denied'));
+}
+
+// ── DIRECTIONS ─────────────────────────────────────────────────
+function openDirections(lat, lng) {
+  // Opens in Google Maps app (mobile) or browser
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+  window.open(url, '_blank');
+}
+
+// ── VIEW TOGGLE ────────────────────────────────────────────────
+function switchView(view) {
+  document.getElementById('map-view').className = view === 'map' ? 'visible' : 'hidden';
+  document.getElementById('list-view').className = view === 'list' ? 'visible' : 'hidden';
+  document.getElementById('mapToggle').className = 'toggle-btn' + (view === 'map' ? ' active' : '');
+  document.getElementById('listToggle').className = 'toggle-btn' + (view === 'list' ? ' active' : '');
+}
+
+// ── THEME ──────────────────────────────────────────────────────
+function toggleTheme() {
+  isDark = !isDark;
+  document.body.classList.toggle('light', !isDark);
+  document.getElementById('themeBtn').textContent = isDark ? '🌙' : '☀️';
+}
+
+// ── TOAST ──────────────────────────────────────────────────────
+function showToast(msg) {
+  document.getElementById('toastMsg').textContent = msg;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── ENTER key support ──────────────────────────────────────────
+document.getElementById('apiUrlInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') loadFromAPI();
+});
+</script>
+</body>
+</html>
